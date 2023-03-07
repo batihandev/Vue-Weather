@@ -1,17 +1,16 @@
 <script setup>
-import axios from 'axios'
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-const searchQuery = ref('')
-const queryTimeout = ref(0)
-const searchError = ref(null)
-const mapboxAPIKey =
-  'pk.eyJ1IjoiYmF0aWhhbmRldiIsImEiOiJjbGVwMXh6dDIwMDk3M3ZwZnhwMHh6M2F3In0.LnSNenoEcKHXP0UM9A2ZpA'
-const mapboxSearchResults = ref('')
-const router = useRouter()
+import axios from 'axios';
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import CityList from '@/components/CityList.vue';
+const searchQuery = ref('');
+const queryTimeout = ref(0);
+const searchError = ref(null);
+const mapboxSearchResults = ref('');
+const router = useRouter();
 const previewCity = (searchResult) => {
-  console.log(searchResult)
-  const [city, state] = searchResult.place_name.split(',')
+  console.log(searchResult);
+  const [city, state] = searchResult.place_name.split(',');
   router.push({
     name: 'cityView',
     params: { state: state.replaceAll(' ', ''), city: city.replaceAll(' ', '') },
@@ -20,27 +19,29 @@ const previewCity = (searchResult) => {
       lng: searchResult.geometry.coordinates[0],
       preview: true
     }
-  })
-}
+  });
+};
 const getSearchResults = () => {
-  clearTimeout(queryTimeout.value)
+  clearTimeout(queryTimeout.value);
   queryTimeout.value = setTimeout(async () => {
     if (searchQuery.value.length > 0) {
       try {
         const result = await axios.get(
-          `https://api.mapbox.com/geocoding/v5/mapbox.places/${searchQuery.value}.json?access_token=${mapboxAPIKey}&types=place`
-        )
-        mapboxSearchResults.value = result.data.features
-        console.log(mapboxSearchResults.value)
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${
+            searchQuery.value
+          }.json?access_token=${import.meta.env.VITE_MAPBOX_API_KEY}&types=place`
+        );
+        mapboxSearchResults.value = result.data.features;
+        console.log(mapboxSearchResults.value);
       } catch (error) {
-        console.log(error)
-        searchError.value = true
+        console.log(error);
+        searchError.value = true;
       }
-      return
+      return;
     }
-    mapboxSearchResults.value = ''
-  }, 500)
-}
+    mapboxSearchResults.value = '';
+  }, 500);
+};
 </script>
 
 <template>
@@ -72,6 +73,14 @@ const getSearchResults = () => {
           </li>
         </template>
       </ul>
+    </div>
+    <div class="flex flex-col gap-4">
+      <Suspense>
+        <CityList />
+        <template #fallback>
+          <p>Loading</p>
+        </template>
+      </Suspense>
     </div>
   </main>
 </template>
